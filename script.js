@@ -1,5 +1,5 @@
 const TIMEZONE = "Europe/Berlin";
-const ROTATION_START = "2026-06-20";
+const ROTATION_START = "2026-07-11";
 
 const FORCE_SPECIAL_BUTTON = false; // Setze auf false, um es wieder zu deaktivieren
 
@@ -18,39 +18,39 @@ const REGULAR_HAPPY_HOUR_ACTIVE = true;
 const FOUR_WEEK_SPECIALS = [
 {
   "happyHourAlcoholic": [
-    "cuba-libre",
-    "melon-sour",
-    "blue-lagoon"
-  ],
-  "happyHourVirgin": "virgin-colada",
-  "cocktailOfTheEvening": "moscow-mule"
-},
-{
-  "happyHourAlcoholic": [
-    "tequila-sunrise",
+    "touchdown",
     "pina-colada",
-    "sex-on-the-beach"
+    "frozen-aperol"
   ],
   "happyHourVirgin": "maracuja-mule",
-  "cocktailOfTheEvening": "gin-fizz"
-},
+  "cocktailOfTheEvening": "frozen-aperol"
+}
+{
+  "happyHourAlcoholic": [
+    "pina-colada",
+    "cuba-libre",
+    "bahama-mama"
+  ],
+  "happyHourVirgin": "virgin-colada",
+  "cocktailOfTheEvening": "blue-lagoon"
+}
+{
+  "happyHourAlcoholic": [
+    "gin-fizz",
+    "sex-on-the-beach",
+    "frozen-daiquiri"
+  ],
+  "happyHourVirgin": "maracuja-mule",
+  "cocktailOfTheEvening": "pisco-sour"
+}
 {
   "happyHourAlcoholic": [
     "espresso-martini",
-    "touchdown",
-    "cuba-libre"
-  ],
-  "happyHourVirgin": "maracuja-mule",
-  "cocktailOfTheEvening": "melon-sour"
-},
-{
-  "happyHourAlcoholic": [
-    "blue-lagoon",
-    "gin-fizz",
-    "tequila-sunrise"
+    "melon-sour",
+    "gin-fizz"
   ],
   "happyHourVirgin": "virgin-colada",
-  "cocktailOfTheEvening": "cuba-libre"
+  "cocktailOfTheEvening": "solero"
 }
 ];
 
