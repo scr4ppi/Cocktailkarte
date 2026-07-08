@@ -87,6 +87,17 @@ const cocktailProfiles = [
   { id: "solero", name: "Solero", note: "Vanillig, fruchtig und cremig-süß.", fruity: 5, alcohol: 3, sweet: 5, sour: 2, bitter: 0, creamy: 3 },
   { id: "cuba-libre", name: "Cuba Libre", note: "Rum, Cola und Limette. Süß, frisch und unkompliziert.", fruity: 2, alcohol: 3, sweet: 3, sour: 2, bitter: 1, creamy: 0 },
   { id: "bahama-mama", name: "Bahama Mama", note: "Tropisch, fruchtig und rumlastig.", fruity: 5, alcohol: 4, sweet: 4, sour: 2, bitter: 0, creamy: 1 },
+  { 
+  id: "frozen-aperol", 
+  name: "Frozen Aperol", 
+  note: "Erfrischend, fruchtig und leicht bitter – perfekt als Slush.", 
+  fruity: 4, 
+  alcohol: 3, 
+  sweet: 4, 
+  sour: 2, 
+  bitter: 2, 
+  creamy: 0 
+},
   { id: "touchdown", name: "Touchdown", note: "Fruchtig, süß-sauer und partygeeignet.", fruity: 5, alcohol: 3, sweet: 4, sour: 3, bitter: 0, creamy: 0 }
 ];
 
