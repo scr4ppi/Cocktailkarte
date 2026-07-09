@@ -24,7 +24,7 @@ const FOUR_WEEK_SPECIALS = [
   ],
   "happyHourVirgin": "maracuja-mule",
   "cocktailOfTheEvening": "frozen-aperol"
-}
+},
 {
   "happyHourAlcoholic": [
     "pina-colada",
@@ -33,7 +33,7 @@ const FOUR_WEEK_SPECIALS = [
   ],
   "happyHourVirgin": "virgin-colada",
   "cocktailOfTheEvening": "blue-lagoon"
-}
+},
 {
   "happyHourAlcoholic": [
     "gin-fizz",
