@@ -230,8 +230,12 @@ function isHappyHourActive() {
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
   
   const now = getBerlinDateParts();
-  // Happy Hour läuft freitags und samstags ab 10 Uhr morgens auf der Karte
-  return (now.weekday === 5 || now.weekday === 6) && now.hour >= 10;
+  
+  return (
+    (now.weekday === 5 && now.hour >= 10) || // Freitag ab 10 Uhr
+    (now.weekday === 6) ||                   // Der komplette Samstag (deckt Freitagnacht ab!)
+    (now.weekday === 0 && now.hour < 10)     // Sonntag bis 10 Uhr morgens (deckt Samstagnacht ab)
+  );
 }
 
 function isCocktailOfTheEveningActive() {
