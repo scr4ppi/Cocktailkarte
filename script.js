@@ -1,4 +1,4 @@
- fconst TIMEZONE = "Europe/Berlin";
+const TIMEZONE = "Europe/Berlin";
 const ROTATION_START = "2026-07-11";
 
 // --- 6-WOCHEN WOCHENEND-SPECIAL (FREITAG & SAMSTAG GLEICH) ---
