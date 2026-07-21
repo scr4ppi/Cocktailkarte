@@ -1,5 +1,10 @@
-const TIMEZONE = "Europe/Berlin";
+ fconst TIMEZONE = "Europe/Berlin";
 const ROTATION_START = "2026-07-11";
+
+// --- 6-WOCHEN WOCHENEND-SPECIAL (FREITAG & SAMSTAG GLEICH) ---
+const WEEKEND_SPECIAL_ACTIVE = true;       // Hauptschalter für das 6-Wochen-Event
+const WEEKEND_SPECIAL_START = "2026-07-17"; // Startdatum (der erste Freitag der Aktion)
+const WEEKEND_SPECIAL_WEEKS = 6;            // Laufzeit in Wochen
 
 const FORCE_SPECIAL_BUTTON = false; // Setze auf false, um es wieder zu deaktivieren
 
@@ -87,17 +92,7 @@ const cocktailProfiles = [
   { id: "solero", name: "Solero", note: "Vanillig, fruchtig und cremig-süß.", fruity: 5, alcohol: 3, sweet: 5, sour: 2, bitter: 0, creamy: 3 },
   { id: "cuba-libre", name: "Cuba Libre", note: "Rum, Cola und Limette. Süß, frisch und unkompliziert.", fruity: 2, alcohol: 3, sweet: 3, sour: 2, bitter: 1, creamy: 0 },
   { id: "bahama-mama", name: "Bahama Mama", note: "Tropisch, fruchtig und rumlastig.", fruity: 5, alcohol: 4, sweet: 4, sour: 2, bitter: 0, creamy: 1 },
-  { 
-    id: "frozen-aperol", 
-    name: "Frozen Aperol", 
-    note: "Erfrischend, fruchtig und leicht bitter.", 
-    fruity: 3, 
-    alcohol: 3, 
-    sweet: 3, 
-    sour: 2, 
-    bitter: 2, 
-    creamy: 0 
-  },
+ 
   { 
   id: "frozen-aperol", 
   name: "Frozen Aperol", 
@@ -171,8 +166,40 @@ function getRotationPlanForDate(dateObj) {
   return FOUR_WEEK_SPECIALS[diffWeeks % 4];
 }
 
+// Prüft, ob das 6-Wochen-Event gerade aktiv ist und es ein Freitag oder Samstag ist
+function isWeekendSpecialActiveNow() {
+  if (!WEEKEND_SPECIAL_ACTIVE) return false;
+
+  const now = getBerlinDateParts();
+  
+  // Gilt nur freitags (5) und samstags (6)
+  if (now.weekday !== 5 && now.weekday !== 6) return false;
+
+  const nowDate = getBerlinDateOnly();
+  const startDate = new Date(`${WEEKEND_SPECIAL_START}T00:00:00Z`);
+
+  const diffMs = nowDate - startDate;
+  const diffDays = Math.round(diffMs / 86400000);
+  const diffWeeks = Math.floor(diffDays / 7);
+
+  // Ist die Aktion schon gestartet und noch innerhalb der 6 Wochen?
+  return diffDays >= 0 && diffWeeks < WEEKEND_SPECIAL_WEEKS;
+}
+
+// Holt den aktuellen Rotationsplan
 function getCurrentWeekPlan() {
-  return getRotationPlanForDate(getBerlinDateOnly());
+  const now = getBerlinDateParts();
+  const nowDate = getBerlinDateOnly();
+  
+  // Wenn das Special aktiv ist und heute FREITAG ist, tun wir für die 
+  // Wochenberechnung so, als wäre es bereits Samstag (+1 Tag).
+  // Dadurch wird freitags und samstags exakt derselbe Wochenplan geladen!
+  if (isWeekendSpecialActiveNow() && now.weekday === 5) {
+    const fakeSaturdayDate = new Date(nowDate.getTime() + 86400000);
+    return getRotationPlanForDate(fakeSaturdayDate);
+  }
+  
+  return getRotationPlanForDate(nowDate);
 }
 
 function getGlobalDiscountRate() {
@@ -189,25 +216,33 @@ function getGlobalDiscountRate() {
 
 function areSpecialsVisible() {
   const now = getBerlinDateParts();
-  const isRegularTime = (now.weekday === 6 && now.hour >= 10) || (now.weekday === 0 && now.hour < 10);
   
-  // Sichtbar, wenn entweder die normalen Specials an sind ODER gerade ein Prozent-Rabatt läuft
-  return (REGULAR_HAPPY_HOUR_ACTIVE && isRegularTime) || getGlobalDiscountRate() > 0;
+  // Sichtbar am Freitag ab 10 Uhr, den gesamten Samstag oder Sonntag bis 10 Uhr morgens
+  const isRegularTime = 
+    (now.weekday === 5 && now.hour >= 10) || 
+    (now.weekday === 6) || 
+    (now.weekday === 0 && now.hour < 10);
+  
+  return (REGULAR_HAPPY_HOUR_ACTIVE && isRegularTime) || getGlobalDiscountRate() > 0 || isWeekendSpecialActiveNow();
 }
 
 function isHappyHourActive() {
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
   
   const now = getBerlinDateParts();
-  return now.weekday === 6 && now.hour >= 10;
+  // Happy Hour läuft freitags und samstags ab 10 Uhr morgens auf der Karte
+  return (now.weekday === 5 || now.weekday === 6) && now.hour >= 10;
 }
 
 function isCocktailOfTheEveningActive() {
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
 
   const now = getBerlinDateParts();
+  
+  // Freitags NICHT aktiv! 
+  // Gilt nur am Samstag ab 10 Uhr bis Sonntagmorgen 10 Uhr.
   return (
-    (now.weekday === 6 && now.hour >= 10) ||
+    (now.weekday === 6 && now.hour >= 10) || 
     (now.weekday === 0 && now.hour < 10)
   );
 }
@@ -216,6 +251,7 @@ function updateSpecialButtonVisibility() {
   const button = document.getElementById("special-button");
   if (!button) return;
 
+  // Der Button leuchtet auf der Karte auf, wenn Specials aktiv sind
   const shouldShow = areSpecialsVisible() || FORCE_SPECIAL_BUTTON;
   button.style.display = shouldShow ? "inline-block" : "none";
 }
