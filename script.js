@@ -21,43 +21,27 @@ const REGULAR_HAPPY_HOUR_ACTIVE = true;
 // --------------------------------
 
 const FOUR_WEEK_SPECIALS = [
-{
-  "happyHourAlcoholic": [
-    "touchdown",
-    "pina-colada",
-    "frozen-aperol"
-  ],
-  "happyHourVirgin": "maracuja-mule",
-  "cocktailOfTheEvening": "frozen-aperol"
-},
-{
-  "happyHourAlcoholic": [
-    "pina-colada",
-    "cuba-libre",
-    "bahama-mama"
-  ],
-  "happyHourVirgin": "virgin-colada",
-  "cocktailOfTheEvening": "blue-lagoon"
-},
-{
-  "happyHourAlcoholic": [
-    "gin-fizz",
-    "sex-on-the-beach",
-    "frozen-daiquiri"
-  ],
-  "happyHourVirgin": "maracuja-mule",
-  "cocktailOfTheEvening": "pisco-sour"
-},
-{
-  "happyHourAlcoholic": [
-    "espresso-martini",
-    "melon-sour",
-    "gin-fizz"
-  ],
-  "happyHourVirgin": "virgin-colada",
-  "cocktailOfTheEvening": "solero"
-}
-];
+      {
+        "happyHourAlcoholic": ["pina-colada", "cuba-libre", "bahama-mama"],
+        "happyHourVirgin": "virgin-colada",
+        "cocktailOfTheEvening": "blue-lagoon"
+      },
+      {
+        "happyHourAlcoholic": ["gin-fizz", "sex-on-the-beach", "frozen-daiquiri"],
+        "happyHourVirgin": "maracuja-mule",
+        "cocktailOfTheEvening": "pisco-sour"
+      },
+      {
+        "happyHourAlcoholic": ["espresso-martini", "melon-sour", "gin-fizz"],
+        "happyHourVirgin": "virgin-colada",
+        "cocktailOfTheEvening": "solero"
+      },
+      {
+        "happyHourAlcoholic": ["touchdown", "pina-colada", "frozen-aperol"],
+        "happyHourVirgin": "maracuja-mule",
+        "cocktailOfTheEvening": "frozen-aperol"
+      }
+    ];
 
 const MANUAL_EVENT_ACTIVE = false;
 const MANUAL_EVENT_PRICE = "0,00€";
