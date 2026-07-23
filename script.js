@@ -27,7 +27,7 @@ const FOUR_WEEK_SPECIALS = [
         "cocktailOfTheEvening": "blue-lagoon"
       },
       {
-        "happyHourAlcoholic": ["gin-fizz", "sex-on-the-beach", "frozen-daiquiri"],
+        "happyHourAlcoholic": ["gin-fizz", "sex-on-the-beach", "blue-lagoon"],
         "happyHourVirgin": "maracuja-mule",
         "cocktailOfTheEvening": "pisco-sour"
       },
