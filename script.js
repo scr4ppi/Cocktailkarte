@@ -1,5 +1,5 @@
 const TIMEZONE = "Europe/Berlin";
-const ROTATION_START = "2026-07-11";
+const ROTATION_START = "2026-07-11";  //Berechnungsstart Happy Hour Samstags
 
 // --- 6-WOCHEN WOCHENEND-SPECIAL (FREITAG & SAMSTAG GLEICH) ---
 const WEEKEND_SPECIAL_ACTIVE = true;       // Hauptschalter für das 6-Wochen-Event
