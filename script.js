@@ -3,7 +3,7 @@ const ROTATION_START = "2026-07-11";  //Berechnungsstart Happy Hour Samstags
 
 // --- 6-WOCHEN WOCHENEND-SPECIAL (FREITAG & SAMSTAG GLEICH) ---
 const WEEKEND_SPECIAL_ACTIVE = true;       // Hauptschalter für das 6-Wochen-Event
-const WEEKEND_SPECIAL_START = "2026-07-18"; // Startdatum (der erste Freitag der Aktion)
+const WEEKEND_SPECIAL_START = "2026-07-11"; // Startdatum (der erste Freitag der Aktion)
 const WEEKEND_SPECIAL_WEEKS = 6;            // Laufzeit in Wochen
 
 const FORCE_SPECIAL_BUTTON = false; // Setze auf false, um es wieder zu deaktivieren
