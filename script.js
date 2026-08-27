@@ -289,6 +289,7 @@ function applyWeeklySpecials(cards) {
   const now = getBerlinDateParts();
 
   // NEU: Polizei-Event Logik (Freitag)
+
   if (POLIZEI_EVENT_ACTIVE && now.weekday === 5) {
     const isPoliceHour = now.hour >= 19 && now.hour < 22;
 
@@ -297,8 +298,8 @@ function applyWeeklySpecials(cards) {
       const priceEl = card.querySelector(".price");
       if (!drinkId || !priceEl) return;
 
-      // Die spezifischen Spritz-IDs
-      const isSpritzSpecial = ["aperol-spritz", "Lillet", "sarti-lemon", "frozen-aperol"].includes(drinkId);
+      // Die spezifischen Spritz-IDs (ohne Frozen Aperol)
+      const isSpritzSpecial = ["aperol-spritz", "Lillet", "sarti-lemon"].includes(drinkId);
 
       if (isPoliceHour) {
         // Zwischen 19:00 und 22:00 Uhr: Alles kostet 6€
