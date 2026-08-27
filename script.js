@@ -1,5 +1,5 @@
 const TIMEZONE = "Europe/Berlin";
-const ROTATION_START = "2026-07-11"; 
+const ROTATION_START = "2026-08-28"; 
 
 // --- 6-WOCHEN WOCHENEND-SPECIAL (FREITAG & SAMSTAG GLEICH) ---
 const WEEKEND_SPECIAL_ACTIVE = false;       // Aktuell pausiert, bleibt aber im Code
@@ -22,26 +22,42 @@ const REGULAR_HAPPY_HOUR_ACTIVE = true;
 // --------------------------------
 
 const FOUR_WEEK_SPECIALS = [
+{
+  "happyHourAlcoholic": [
+    "blue-lagoon",
+    "gin-fizz",
+    "melon-sour"
+  ],
+  "happyHourVirgin": "ipanema",
+  "cocktailOfTheEvening": "tequila-sunrise"
+}
+{
+  "happyHourAlcoholic": [
+    "sex-on-the-beach",
+    "espresso-martini",
+    "frozen-daiquiri"
+  ],
+  "happyHourVirgin": "virgin-colada",
+  "cocktailOfTheEvening": "moscow-mule"
+}
       {
-        "happyHourAlcoholic": ["pina-colada", "cuba-libre", "bahama-mama"],
-        "happyHourVirgin": "virgin-colada",
-        "cocktailOfTheEvening": "blue-lagoon"
-      },
-      {
-        "happyHourAlcoholic": ["gin-fizz", "sex-on-the-beach", "blue-lagoon"],
-        "happyHourVirgin": "maracuja-mule",
-        "cocktailOfTheEvening": "pisco-sour"
-      },
-      {
-        "happyHourAlcoholic": ["espresso-martini", "melon-sour", "gin-fizz"],
-        "happyHourVirgin": "virgin-colada",
-        "cocktailOfTheEvening": "solero"
-      },
-      {
-        "happyHourAlcoholic": ["touchdown", "pina-colada", "frozen-aperol"],
-        "happyHourVirgin": "maracuja-mule",
-        "cocktailOfTheEvening": "frozen-aperol"
-      }
+  "happyHourAlcoholic": [
+    "cuba-libre",
+    "pina-colada",
+    "tequila-sunrise"
+  ],
+  "happyHourVirgin": "ipanema",
+  "cocktailOfTheEvening": "tequila-sunrise"
+}
+     {
+  "happyHourAlcoholic": [
+    "pina-colada",
+    "espresso-martini",
+    "tequila-sunrise"
+  ],
+  "happyHourVirgin": "ipanema",
+  "cocktailOfTheEvening": "bahama-mama"
+}
     ];
 
 const MANUAL_EVENT_ACTIVE = false;
