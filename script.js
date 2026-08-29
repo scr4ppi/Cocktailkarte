@@ -30,7 +30,7 @@ const FOUR_WEEK_SPECIALS = [
   ],
   "happyHourVirgin": "ipanema",
   "cocktailOfTheEvening": "tequila-sunrise"
-}
+},
 {
   "happyHourAlcoholic": [
     "sex-on-the-beach",
@@ -39,7 +39,7 @@ const FOUR_WEEK_SPECIALS = [
   ],
   "happyHourVirgin": "virgin-colada",
   "cocktailOfTheEvening": "moscow-mule"
-}
+},
       {
   "happyHourAlcoholic": [
     "cuba-libre",
@@ -48,7 +48,7 @@ const FOUR_WEEK_SPECIALS = [
   ],
   "happyHourVirgin": "ipanema",
   "cocktailOfTheEvening": "tequila-sunrise"
-}
+},
      {
   "happyHourAlcoholic": [
     "pina-colada",
