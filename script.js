@@ -33,7 +33,7 @@ const FOUR_WEEK_SPECIALS = [
 },
 {
   "happyHourAlcoholic": [
-    "sex-on-the-beach",
+    "solero",
     "espresso-martini",
     "frozen-daiquiri"
   ],
