@@ -1,5 +1,5 @@
 const TIMEZONE = "Europe/Berlin";
-const ROTATION_START = "2026-09-05"; 
+const ROTATION_START = "2026-08-28"; 
 
 // --- 6-WOCHEN WOCHENEND-SPECIAL (FREITAG & SAMSTAG GLEICH) ---
 const WEEKEND_SPECIAL_ACTIVE = false;       // Aktuell pausiert, bleibt aber im Code
