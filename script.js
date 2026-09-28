@@ -11,7 +11,7 @@ const FORCE_SPECIAL_BUTTON = false; // Setze auf false, um es wieder zu deaktivi
 // --- DEINE SCHALTER FÜR HEUTE ---
 
 // SCHALTER: Geschlossene Gesellschaft & Spritz-Special (FREITAG)
-const POLIZEI_EVENT_ACTIVE = true; 
+const POLIZEI_EVENT_ACTIVE = false; 
 
 // SCHALTER 1: 30% Rabatt (20-21 Uhr) und 10% Rabatt (21-22 Uhr)
 const PERCENTAGE_DISCOUNT_ACTIVE = false; 
@@ -226,9 +226,11 @@ function isHappyHourActive() {
   const now = getBerlinDateParts();
   
   return (
+    // Freitag: Bleibt wie gehabt
     (now.weekday === 5 && now.hour >= 10) || 
-    (now.weekday === 6) ||                   
-    (now.weekday === 0 && now.hour < 10)     
+    
+    // Samstag: Happy Hour exakt von 20:00 bis 20:59 Uhr
+    (now.weekday === 6 && now.hour === 20)
   );
 }
 
