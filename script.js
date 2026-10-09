@@ -208,9 +208,11 @@ function getGlobalDiscountRate() {
 }
 
 
+
 const isRegularTime =
   (now.weekday === 6 && now.hour >= 10) ||
   (now.weekday === 0 && now.hour < 10);
+
 
 
 function isHappyHourActive() {
@@ -219,7 +221,7 @@ function isHappyHourActive() {
   const now = getBerlinDateParts();
 
   return (
-    (now.weekday === 6 && now.hour >= 10) ||
+    (now.weekday === 6 && now.hour >= 10 && now.hour < 22) ||
     (now.weekday === 0 && now.hour < 10)
   );
 }
