@@ -215,14 +215,24 @@ const isRegularTime =
 
 
 
+
 function isHappyHourActive() {
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
 
   const now = getBerlinDateParts();
 
   return (
-    (now.weekday === 6 && now.hour >= 10 && now.hour < 22) ||
-    (now.weekday === 0 && now.hour < 10)
+    // Freitag: Happy Hour von 10:00 bis 21:59 Uhr
+    (now.weekday === 5 &&
+      now.hour >= 10 &&
+      now.hour < 22) ||
+
+    // Samstag: Happy Hour von 10:00 bis 21:59 Uhr
+    (now.weekday === 6 &&
+      now.hour >= 10 &&
+      now.hour < 22) ||
+
+
   );
 }
 
@@ -230,9 +240,15 @@ function isCocktailOfTheEveningActive() {
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
 
   const now = getBerlinDateParts();
-  
+
   return (
-    (now.weekday === 6 && now.hour >= 10) || 
+    // Freitag: Cocktail des Abends ab 10:00 Uhr
+    
+
+    // Samstag: Cocktail des Abends ab 10:00 Uhr
+    (now.weekday === 6 && now.hour >= 10) ||
+
+    // Sonntag: bis 10:00 Uhr
     (now.weekday === 0 && now.hour < 10)
   );
 }
