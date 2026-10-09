@@ -22,43 +22,27 @@ const REGULAR_HAPPY_HOUR_ACTIVE = true;
 // --------------------------------
 
 const FOUR_WEEK_SPECIALS = [
-{
-  "happyHourAlcoholic": [
-    "blue-lagoon",
-    "gin-fizz",
-    "melon-sour"
-  ],
-  "happyHourVirgin": "ipanema",
-  "cocktailOfTheEvening": "tequila-sunrise"
-},
-{
-  "happyHourAlcoholic": [
-    "solero",
-    "espresso-martini",
-    "frozen-daiquiri"
-  ],
-  "happyHourVirgin": "virgin-colada",
-  "cocktailOfTheEvening": "moscow-mule"
-},
-      {
-  "happyHourAlcoholic": [
-    "cuba-libre",
-    "pina-colada",
-    "tequila-sunrise"
-  ],
-  "happyHourVirgin": "ipanema",
-  "cocktailOfTheEvening": "tequila-sunrise"
-},
-     {
-  "happyHourAlcoholic": [
-    "pina-colada",
-    "espresso-martini",
-    "tequila-sunrise"
-  ],
-  "happyHourVirgin": "ipanema",
-  "cocktailOfTheEvening": "bahama-mama"
-}
-    ];
+  {
+    "happyHourAlcoholic": ["blue-lagoon", "gin-fizz", "melon-sour"],
+    "happyHourVirgin": "ipanema",
+    "cocktailOfTheEvening": "tequila-sunrise"
+  },
+  {
+    "happyHourAlcoholic": ["solero", "espresso-martini", "frozen-daiquiri"],
+    "happyHourVirgin": "virgin-colada",
+    "cocktailOfTheEvening": "moscow-mule"
+  },
+  {
+    "happyHourAlcoholic": ["cuba-libre", "pina-colada", "tequila-sunrise"],
+    "happyHourVirgin": "ipanema",
+    "cocktailOfTheEvening": "tequila-sunrise"
+  },
+  {
+    "happyHourAlcoholic": ["pina-colada", "espresso-martini", "tequila-sunrise"],
+    "happyHourVirgin": "ipanema",
+    "cocktailOfTheEvening": "bahama-mama"
+  }
+];
 
 const MANUAL_EVENT_ACTIVE = false;
 const MANUAL_EVENT_PRICE = "0,00€";
@@ -93,17 +77,7 @@ const cocktailProfiles = [
   { id: "solero", name: "Solero", note: "Vanillig, fruchtig und cremig-süß.", fruity: 5, alcohol: 3, sweet: 5, sour: 2, bitter: 0, creamy: 3 },
   { id: "cuba-libre", name: "Cuba Libre", note: "Rum, Cola und Limette. Süß, frisch und unkompliziert.", fruity: 2, alcohol: 3, sweet: 3, sour: 2, bitter: 1, creamy: 0 },
   { id: "bahama-mama", name: "Bahama Mama", note: "Tropisch, fruchtig und rumlastig.", fruity: 5, alcohol: 4, sweet: 4, sour: 2, bitter: 0, creamy: 1 },
-  { 
-    id: "frozen-aperol", 
-    name: "Frozen Aperol", 
-    note: "Erfrischend, fruchtig und leicht bitter – perfekt als Slush.", 
-    fruity: 4, 
-    alcohol: 3, 
-    sweet: 4, 
-    sour: 2, 
-    bitter: 2, 
-    creamy: 0 
-  },
+  { id: "frozen-aperol", name: "Frozen Aperol", note: "Erfrischend, fruchtig und leicht bitter – perfekt als Slush.", fruity: 4, alcohol: 3, sweet: 4, sour: 2, bitter: 2, creamy: 0 },
   { id: "touchdown", name: "Touchdown", note: "Fruchtig, süß-sauer und partygeeignet.", fruity: 5, alcohol: 3, sweet: 4, sour: 3, bitter: 0, creamy: 0 }
 ];
 
@@ -207,48 +181,37 @@ function getGlobalDiscountRate() {
   return 0;
 }
 
-
-
-const isRegularTime =
-  (now.weekday === 6 && now.hour >= 10) ||
-  (now.weekday === 0 && now.hour < 10);
-
-
-
+// Prüft, ob der "Specials"-Button angezeigt werden soll
+function areSpecialsVisible() {
+  const now = getBerlinDateParts();
+  
+  // Freitags-Spritz-Special (Freitag ab 22 Uhr bis Samstag 6 Uhr)
+  const isSpritzTime = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
+  
+  // Samstags Happy Hour (21-22 Uhr)
+  const isHappyHourTime = now.weekday === 6 && now.hour === 21;
+  
+  // Samstags Cocktail des Abends (ab 23 Uhr bis Sonntagmorgen 10 Uhr)
+  const isCotETime = (now.weekday === 6 && now.hour >= 23) || (now.weekday === 0 && now.hour < 10);
+  
+  return isSpritzTime || isHappyHourTime || isCotETime || isWeekendSpecialActiveNow();
+}
 
 function isHappyHourActive() {
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
-
   const now = getBerlinDateParts();
-
-  return (
-    // Freitag: Happy Hour von 10:00 bis 21:59 Uhr
-    (now.weekday === 5 &&
-      now.hour >= 10 &&
-      now.hour < 22) ||
-
-    // Samstag: Happy Hour von 10:00 bis 21:59 Uhr
-    (now.weekday === 6 &&
-      now.hour >= 10 &&
-      now.hour < 22) ||
-
-
-  );
+  
+  // Happy Hour NUR Samstags zwischen 21:00 und 21:59 Uhr
+  return (now.weekday === 6 && now.hour === 21);
 }
 
 function isCocktailOfTheEveningActive() {
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
-
   const now = getBerlinDateParts();
-
+  
+  // Cocktail des Abends NUR Samstags ab 23:00 Uhr (bis Sonntag 10:00 Uhr)
   return (
-    // Freitag: Cocktail des Abends ab 10:00 Uhr
-    
-
-    // Samstag: Cocktail des Abends ab 10:00 Uhr
-    (now.weekday === 6 && now.hour >= 10) ||
-
-    // Sonntag: bis 10:00 Uhr
+    (now.weekday === 6 && now.hour >= 23) ||
     (now.weekday === 0 && now.hour < 10)
   );
 }
@@ -313,38 +276,32 @@ function applyWeeklySpecials(cards) {
   clearDynamicSpecials(cards);
 
   const now = getBerlinDateParts();
-
-  // NEU: Polizei-Event Logik (Freitag)
-
-  if (POLIZEI_EVENT_ACTIVE && now.weekday === 5) {
-    const isPoliceHour = now.hour >= 19 && now.hour < 22;
-
+  
+  // Freitag Spritz-Special: 22:00 bis 06:00 Uhr
+  const isSpritzHour = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
+  
+  if (isSpritzHour) {
     cards.forEach((card) => {
       const drinkId = card.dataset.drinkId;
       const priceEl = card.querySelector(".price");
       if (!drinkId || !priceEl) return;
 
-      // Die spezifischen Spritz-IDs (ohne Frozen Aperol)
-      const isSpritzSpecial = ["aperol-spritz", "Lillet", "sarti-lemon"].includes(drinkId);
+      // Exakte IDs für das Spritz-Special
+      const isSpritzSpecial = ["aperol-spritz", "Lillet", "sarti-lemon", "frozen-aperol"].includes(drinkId);
 
-      if (isPoliceHour) {
-        // Zwischen 19:00 und 22:00 Uhr: Alles kostet 6€
-        card.classList.add("manual-event");
-        priceEl.textContent = "6,00€";
-      } else if (isSpritzSpecial) {
-        // Restlicher Freitag: Nur die Aperol/Lillet/Sarti-Fraktion kostet 6€
+      if (isSpritzSpecial) {
         card.classList.add("manual-event");
         priceEl.textContent = "6,00€";
       }
     });
     
-    // An diesem Freitag greift danach kein anderes Special mehr, daher beenden wir die Funktion hier
+    // In der Freitagnacht laufen keine anderen Specials, hier abbrechen
     return;
   }
 
   const globalDiscount = getGlobalDiscountRate();
 
-  // Rabatte (20-22 Uhr)
+  // Rabatte (falls aktiv)
   if (globalDiscount > 0) {
     cards.forEach((card) => {
       const priceEl = card.querySelector(".price");
@@ -364,7 +321,7 @@ function applyWeeklySpecials(cards) {
     return;
   }
 
-  // Normale Specials
+  // Normale Specials (Samstag)
   const plan = getCurrentWeekPlan();
 
   if (plan) {
