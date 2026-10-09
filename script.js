@@ -3,7 +3,7 @@ const ROTATION_START = "2026-08-28";
 
 // --- 6-WOCHEN WOCHENEND-SPECIAL (FREITAG & SAMSTAG GLEICH) ---
 const WEEKEND_SPECIAL_ACTIVE = false;       // Aktuell pausiert, bleibt aber im Code
-const WEEKEND_SPECIAL_START = "2026-07-11"; // Startdatum 
+const WEEKEND_SPECIAL_START = "2026-10-09"; // Startdatum 
 const WEEKEND_SPECIAL_WEEKS = 6;            // Laufzeit in Wochen
 
 const FORCE_SPECIAL_BUTTON = false; // Setze auf false, um es wieder zu deaktivieren
@@ -207,30 +207,20 @@ function getGlobalDiscountRate() {
   return 0;
 }
 
-function areSpecialsVisible() {
-  const now = getBerlinDateParts();
-  
-  const isRegularTime = 
-    (now.weekday === 5 && now.hour >= 10) || 
-    (now.weekday === 6) || 
-    (now.weekday === 0 && now.hour < 10);
-  
-  const isPolizeiEvent = POLIZEI_EVENT_ACTIVE && now.weekday === 5;
-  
-  return (REGULAR_HAPPY_HOUR_ACTIVE && isRegularTime) || getGlobalDiscountRate() > 0 || isWeekendSpecialActiveNow() || isPolizeiEvent;
-}
+
+const isRegularTime =
+  (now.weekday === 6 && now.hour >= 10) ||
+  (now.weekday === 0 && now.hour < 10);
+
 
 function isHappyHourActive() {
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
-  
+
   const now = getBerlinDateParts();
-  
+
   return (
-    // Freitag: Bleibt wie gehabt
-    (now.weekday === 5 && now.hour >= 10) || 
-    
-    // Samstag: Happy Hour exakt von 20:00 bis 20:59 Uhr
-    (now.weekday === 6 && now.hour === 20)
+    (now.weekday === 6 && now.hour >= 10) ||
+    (now.weekday === 0 && now.hour < 10)
   );
 }
 
