@@ -144,7 +144,6 @@ function isWeekendSpecialActiveNow() {
   if (!WEEKEND_SPECIAL_ACTIVE) return false;
 
   const now = getBerlinDateParts();
-  
   if (now.weekday !== 5 && now.weekday !== 6) return false;
 
   const nowDate = getBerlinDateOnly();
@@ -169,19 +168,13 @@ function getCurrentWeekPlan() {
   return getRotationPlanForDate(nowDate);
 }
 
-
-
-// --- NEU: Halloween-Check ---
+// --- HALLOWEEN-CHECK ---
 function isHalloweenEventActive() {
   const now = getBerlinDateParts();
-  // Aktiv vom 31.10. 00:00 Uhr bis 01.11. 05:59 Uhr im Jahr 2026
-  if (now.year === 2026) {
-    if (now.month === 10 && now.day === 31) return true;
-    if (now.month === 11 && now.day === 1 && now.hour < 6) return true;
-  }
+  if (now.month === 10 && now.day === 31) return true; // 31. Oktober
+  if (now.month === 11 && now.day === 1 && now.hour < 6) return true; // 1. November bis 6 Uhr
   return false;
 }
-
 
 function getGlobalDiscountRate() {
   if (isHalloweenEventActive()) return 0; // HALLOWEEN: Keine Rabatte
@@ -223,6 +216,60 @@ function isCocktailOfTheEveningActive() {
     (now.weekday === 6 && now.hour >= 23) ||
     (now.weekday === 0 && now.hour < 10)
   );
+}
+
+function updateSpecialButtonVisibility() {
+  const button = document.getElementById("special-button");
+  if (!button) return;
+
+  const shouldShow = areSpecialsVisible() || FORCE_SPECIAL_BUTTON;
+  button.style.display = shouldShow ? "inline-block" : "none";
+}
+
+function restoreOriginalPrices(cards) {
+  cards.forEach((card) => {
+    const priceEl = card.querySelector(".price");
+    if (!priceEl) return;
+
+    if (!priceEl.dataset.originalPrice) {
+      priceEl.dataset.originalPrice = priceEl.textContent.trim();
+    }
+    priceEl.textContent = priceEl.dataset.originalPrice;
+  });
+}
+
+function clearDynamicSpecials(cards) {
+  cards.forEach((card) => {
+    card.classList.remove("happy-hour", "cocktail-abend", "manual-event", "global-discount");
+  });
+}
+
+function applyManualEventSpecials(cards) {
+  if (!MANUAL_EVENT_ACTIVE) return;
+
+  const now = getBerlinDateParts();
+  const currentHour = now.hour;
+
+  let currentPrice = parseFloat(MANUAL_EVENT_PRICE.replace("€", "").replace(",", "."));
+
+  if (currentHour >= 0 && currentHour <= 7) {
+    currentPrice += ((currentHour + 1) * 0.5); 
+  }
+
+  const formattedPrice = currentPrice.toFixed(2).replace(".", ",") + "€";
+
+  cards.forEach((card) => {
+    const drinkId = card.dataset.drinkId;
+    if (!drinkId) return;
+
+    if (MANUAL_EVENT_COCKTAILS.includes(drinkId)) {
+      card.classList.add("manual-event");
+      const priceEl = card.querySelector(".price");
+      if (priceEl) {
+        priceEl.textContent = formattedPrice;
+      }
+    }
+  });
 }
 
 function applyWeeklySpecials(cards) {
@@ -269,115 +316,6 @@ function applyWeeklySpecials(cards) {
       if (!priceEl) return;
 
       const basePrice = parseFloat(priceEl.dataset.originalPrice.replace("€", "").replace(",", "."));
-      if (!isNaN(basePrice)) {
-        const discountedPrice = basePrice * (1 - globalDiscount);
-        const formattedPrice = discountedPrice.toFixed(2).replace(".", ",");
-        const discountPercent = globalDiscount === 0.30 ? "-30%" : "-10%";
-
-        priceEl.innerHTML = `${formattedPrice}€ <span class="discount-badge" style="color: #ff3333; font-weight: bold; margin-left: 5px;">(${discountPercent})</span>`;
-        card.classList.add("global-discount");
-      }
-    });
-    return;
-  }
-
-  const plan = getCurrentWeekPlan();
-  if (plan) {
-    const happyHourActive = isHappyHourActive();
-    const cocktailOfEveningActive = isCocktailOfTheEveningActive();
-
-    cards.forEach((card) => {
-      const drinkId = card.dataset.drinkId;
-      if (!drinkId) return;
-
-      const isAlcoholicHappyHour = plan.happyHourAlcoholic.includes(drinkId);
-      const isVirginHappyHour = plan.happyHourVirgin === drinkId;
-      const isCocktailOfTheEvening = plan.cocktailOfTheEvening === drinkId;
-
-      if (happyHourActive && (isAlcoholicHappyHour || isVirginHappyHour)) {
-        card.classList.add("happy-hour");
-      }
-
-      if (cocktailOfEveningActive && isCocktailOfTheEvening) {
-        card.classList.add("cocktail-abend");
-        const priceEl = card.querySelector(".price");
-        if (priceEl) {
-          priceEl.textContent = "6,00€";
-        }
-      }
-    });
-  }
-
-  applyManualEventSpecials(cards);
-}
-
-
-function updateSpecialButtonVisibility() {
-  const button = document.getElementById("special-button");
-  if (!button) return;
-
-  const shouldShow = areSpecialsVisible() || FORCE_SPECIAL_BUTTON;
-  button.style.display = shouldShow ? "inline-block" : "none";
-}
-
-function restoreOriginalPrices(cards) {
-  cards.forEach((card) => {
-    const priceEl = card.querySelector(".price");
-    if (!priceEl) return;
-
-    if (!priceEl.dataset.originalPrice) {
-      priceEl.dataset.originalPrice = priceEl.textContent.trim();
-    }
-
-    priceEl.textContent = priceEl.dataset.originalPrice;
-  });
-}
-
-function clearDynamicSpecials(cards) {
-  cards.forEach((card) => {
-    card.classList.remove("happy-hour", "cocktail-abend", "manual-event", "global-discount");
-  });
-}
-
-function applyManualEventSpecials(cards) {
-  if (!MANUAL_EVENT_ACTIVE) return;
-
-  const now = getBerlinDateParts();
-  const currentHour = now.hour;
-
-  let currentPrice = parseFloat(MANUAL_EVENT_PRICE.replace("€", "").replace(",", "."));
-
-  if (currentHour >= 0 && currentHour <= 7) {
-    currentPrice += ((currentHour + 1) * 0.5); 
-  }
-
-  const formattedPrice = currentPrice.toFixed(2).replace(".", ",") + "€";
-
-  cards.forEach((card) => {
-    const drinkId = card.dataset.drinkId;
-    if (!drinkId) return;
-
-    if (MANUAL_EVENT_COCKTAILS.includes(drinkId)) {
-      card.classList.add("manual-event");
-      const priceEl = card.querySelector(".price");
-      if (priceEl) {
-        priceEl.textContent = formattedPrice;
-      }
-    }
-  });
-}
-
-
-
-  const globalDiscount = getGlobalDiscountRate();
-
-  // Rabatte (falls aktiv)
-  if (globalDiscount > 0) {
-    cards.forEach((card) => {
-      const priceEl = card.querySelector(".price");
-      if (!priceEl) return;
-
-      const basePrice = parseFloat(priceEl.dataset.originalPrice.replace("€", "").replace(",", "."));
       
       if (!isNaN(basePrice)) {
         const discountedPrice = basePrice * (1 - globalDiscount);
@@ -391,7 +329,6 @@ function applyManualEventSpecials(cards) {
     return;
   }
 
-  // Normale Specials (Samstag)
   const plan = getCurrentWeekPlan();
 
   if (plan) {
@@ -425,7 +362,6 @@ function applyManualEventSpecials(cards) {
 
 function cardMatchesFilter(card, selectedCategory) {
   const baseCategory = card.dataset.category;
-
   if (selectedCategory === "all") return true;
 
   if (selectedCategory === "specials") {
@@ -474,13 +410,11 @@ function calculateMatch(wanted, cocktail) {
 
   const maxDifference = tasteLabels.length * 5;
   const match = Math.round((1 - difference / maxDifference) * 100);
-
   return Math.max(0, match);
 }
 
 function getSortedMatches(tasteInputs) {
   const wanted = getWantedProfile(tasteInputs);
-
   return cocktailProfiles
     .map((cocktail) => ({
       ...cocktail,
@@ -598,7 +532,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderFinderResults() {
     if (!finderResults) return;
-
     const matches = getSortedMatches(tasteInputs);
 
     finderResults.innerHTML = matches
