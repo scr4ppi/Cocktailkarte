@@ -169,11 +169,25 @@ function getCurrentWeekPlan() {
   return getRotationPlanForDate(nowDate);
 }
 
+
+
+// --- NEU: Halloween-Check ---
+function isHalloweenEventActive() {
+  const now = getBerlinDateParts();
+  // Aktiv vom 31.10. 00:00 Uhr bis 01.11. 05:59 Uhr im Jahr 2026
+  if (now.year === 2026) {
+    if (now.month === 10 && now.day === 31) return true;
+    if (now.month === 11 && now.day === 1 && now.hour < 6) return true;
+  }
+  return false;
+}
+
+
 function getGlobalDiscountRate() {
+  if (isHalloweenEventActive()) return 0; // HALLOWEEN: Keine Rabatte
   if (!PERCENTAGE_DISCOUNT_ACTIVE) return 0;
 
   const now = getBerlinDateParts();
-  
   if (now.weekday === 6) { 
     if (now.hour === 20) return 0.30; 
     if (now.hour === 21) return 0.10; 
@@ -181,40 +195,122 @@ function getGlobalDiscountRate() {
   return 0;
 }
 
-// Prüft, ob der "Specials"-Button angezeigt werden soll
 function areSpecialsVisible() {
+  if (isHalloweenEventActive()) return false; // HALLOWEEN: Button ausblenden
+
   const now = getBerlinDateParts();
-  
-  // Freitags-Spritz-Special (Freitag ab 22 Uhr bis Samstag 6 Uhr)
   const isSpritzTime = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
-  
-  // Samstags Happy Hour (21-22 Uhr)
   const isHappyHourTime = now.weekday === 6 && now.hour === 21;
-  
-  // Samstags Cocktail des Abends (ab 23 Uhr bis Sonntagmorgen 10 Uhr)
   const isCotETime = (now.weekday === 6 && now.hour >= 23) || (now.weekday === 0 && now.hour < 10);
   
   return isSpritzTime || isHappyHourTime || isCotETime || isWeekendSpecialActiveNow();
 }
 
 function isHappyHourActive() {
+  if (isHalloweenEventActive()) return false; // HALLOWEEN: Keine Happy Hour
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
-  const now = getBerlinDateParts();
   
-  // Happy Hour NUR Samstags zwischen 21:00 und 21:59 Uhr
+  const now = getBerlinDateParts();
   return (now.weekday === 6 && now.hour === 21);
 }
 
 function isCocktailOfTheEveningActive() {
+  if (isHalloweenEventActive()) return false; // HALLOWEEN: Kein Cocktail des Abends
   if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
-  const now = getBerlinDateParts();
   
-  // Cocktail des Abends NUR Samstags ab 23:00 Uhr (bis Sonntag 10:00 Uhr)
+  const now = getBerlinDateParts();
   return (
     (now.weekday === 6 && now.hour >= 23) ||
     (now.weekday === 0 && now.hour < 10)
   );
 }
+
+function applyWeeklySpecials(cards) {
+  restoreOriginalPrices(cards);
+  clearDynamicSpecials(cards);
+
+  // --- HALLOWEEN LOGIK ---
+  const kickerEl = document.querySelector(".kicker");
+  if (isHalloweenEventActive()) {
+    document.body.classList.add("halloween-theme");
+    if (kickerEl) kickerEl.textContent = "Verfluchte Drinks";
+    return; // Bricht hier ab, KEINE Specials werden geladen!
+  } else {
+    document.body.classList.remove("halloween-theme");
+    if (kickerEl) kickerEl.textContent = "Cocktails";
+  }
+
+  const now = getBerlinDateParts();
+  
+  // Freitag Spritz-Special: 22:00 bis 06:00 Uhr
+  const isSpritzHour = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
+  
+  if (isSpritzHour) {
+    cards.forEach((card) => {
+      const drinkId = card.dataset.drinkId;
+      const priceEl = card.querySelector(".price");
+      if (!drinkId || !priceEl) return;
+
+      const isSpritzSpecial = ["aperol-spritz", "Lillet", "sarti-lemon", "frozen-aperol"].includes(drinkId);
+
+      if (isSpritzSpecial) {
+        card.classList.add("manual-event");
+        priceEl.textContent = "6,00€";
+      }
+    });
+    return;
+  }
+
+  const globalDiscount = getGlobalDiscountRate();
+
+  if (globalDiscount > 0) {
+    cards.forEach((card) => {
+      const priceEl = card.querySelector(".price");
+      if (!priceEl) return;
+
+      const basePrice = parseFloat(priceEl.dataset.originalPrice.replace("€", "").replace(",", "."));
+      if (!isNaN(basePrice)) {
+        const discountedPrice = basePrice * (1 - globalDiscount);
+        const formattedPrice = discountedPrice.toFixed(2).replace(".", ",");
+        const discountPercent = globalDiscount === 0.30 ? "-30%" : "-10%";
+
+        priceEl.innerHTML = `${formattedPrice}€ <span class="discount-badge" style="color: #ff3333; font-weight: bold; margin-left: 5px;">(${discountPercent})</span>`;
+        card.classList.add("global-discount");
+      }
+    });
+    return;
+  }
+
+  const plan = getCurrentWeekPlan();
+  if (plan) {
+    const happyHourActive = isHappyHourActive();
+    const cocktailOfEveningActive = isCocktailOfTheEveningActive();
+
+    cards.forEach((card) => {
+      const drinkId = card.dataset.drinkId;
+      if (!drinkId) return;
+
+      const isAlcoholicHappyHour = plan.happyHourAlcoholic.includes(drinkId);
+      const isVirginHappyHour = plan.happyHourVirgin === drinkId;
+      const isCocktailOfTheEvening = plan.cocktailOfTheEvening === drinkId;
+
+      if (happyHourActive && (isAlcoholicHappyHour || isVirginHappyHour)) {
+        card.classList.add("happy-hour");
+      }
+
+      if (cocktailOfEveningActive && isCocktailOfTheEvening) {
+        card.classList.add("cocktail-abend");
+        const priceEl = card.querySelector(".price");
+        if (priceEl) {
+          priceEl.textContent = "6,00€";
+        }
+      }
+    });
+  }
+
+  applyManualEventSpecials(cards);
+}
+
 
 function updateSpecialButtonVisibility() {
   const button = document.getElementById("special-button");
@@ -271,33 +367,7 @@ function applyManualEventSpecials(cards) {
   });
 }
 
-function applyWeeklySpecials(cards) {
-  restoreOriginalPrices(cards);
-  clearDynamicSpecials(cards);
 
-  const now = getBerlinDateParts();
-  
-  // Freitag Spritz-Special: 22:00 bis 06:00 Uhr
-  const isSpritzHour = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
-  
-  if (isSpritzHour) {
-    cards.forEach((card) => {
-      const drinkId = card.dataset.drinkId;
-      const priceEl = card.querySelector(".price");
-      if (!drinkId || !priceEl) return;
-
-      // Exakte IDs für das Spritz-Special
-      const isSpritzSpecial = ["aperol-spritz", "Lillet", "sarti-lemon", "frozen-aperol"].includes(drinkId);
-
-      if (isSpritzSpecial) {
-        card.classList.add("manual-event");
-        priceEl.textContent = "6,00€";
-      }
-    });
-    
-    // In der Freitagnacht laufen keine anderen Specials, hier abbrechen
-    return;
-  }
 
   const globalDiscount = getGlobalDiscountRate();
 
