@@ -144,21 +144,16 @@ function isHalloweenEventActive() {
 
 // HIER IST DIE NEUE 50% RABATT LOGIK FÜR SAMSTAG 21:00 - 22:30 UHR
 function getGlobalDiscountRate() {
+  if (isHalloweenEventActive()) return 0; // HALLOWEEN: Keine Rabatte
   if (!PERCENTAGE_DISCOUNT_ACTIVE) return 0;
 
-  // TEST-MODUS: Wir geben pauschal 50% Rabatt zurück, 
-  // um das CSS-Styling der Rahmen zu sehen.
-  return 0.50; 
-  
-  /* Originaler Code auskommentiert für den Test:
   const now = getBerlinDateParts();
-  
   if (now.weekday === 6) { 
-    if (now.hour === 20) return 0.30; 
-    if (now.hour === 21) return 0.10; 
+    if (now.hour === 21) return 0.50; // 21:00 - 21:59 = 50%
+    if (now.hour === 22 && now.minute < 30) return 0.50; // 22:00 - 22:29 = 50%
   }
   return 0;
-  */
+}
 
 function areSpecialsVisible() {
   if (isHalloweenEventActive()) return false; // HALLOWEEN: Button ausblenden
