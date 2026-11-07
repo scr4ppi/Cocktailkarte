@@ -13,36 +13,25 @@ const FORCE_SPECIAL_BUTTON = false; // Setze auf false, um es wieder zu deaktivi
 // SCHALTER: Geschlossene Gesellschaft & Spritz-Special (FREITAG)
 const POLIZEI_EVENT_ACTIVE = false; 
 
-// SCHALTER 1: 30% Rabatt (20-21 Uhr) und 10% Rabatt (21-22 Uhr)
-const PERCENTAGE_DISCOUNT_ACTIVE = false; 
+// SCHALTER 1: NEUE HAPPY HOUR -> 50% Rabatt auf ALLES (Sa 21:00 - 22:30)
+const PERCENTAGE_DISCOUNT_ACTIVE = true; 
 
-// SCHALTER 2: Normale Happy Hour & Cocktail des Abends
-const REGULAR_HAPPY_HOUR_ACTIVE = true; 
+// SCHALTER 2: Cocktail des Abends (Ab 23 Uhr) - BLEIBT ERHALTEN!
+const COCKTAIL_ABEND_ACTIVE = true; 
+
+// HIER LEGT DU FEST, WELCHER COCKTAIL DES ABENDS ES SEIN SOLL (da es keine Rotation mehr gibt)
+const FIXED_COCKTAIL_OF_EVENING = "tequila-sunrise"; 
 
 // --------------------------------
 
+/* DIE ALTE ROTATION IST WIE GEWÜNSCHT AUSGEGRAUT/DEAKTIVIERT
 const FOUR_WEEK_SPECIALS = [
-  {
-    "happyHourAlcoholic": ["blue-lagoon", "gin-fizz", "melon-sour"],
-    "happyHourVirgin": "ipanema",
-    "cocktailOfTheEvening": "tequila-sunrise"
-  },
-  {
-    "happyHourAlcoholic": ["solero", "espresso-martini", "frozen-daiquiri"],
-    "happyHourVirgin": "virgin-colada",
-    "cocktailOfTheEvening": "moscow-mule"
-  },
-  {
-    "happyHourAlcoholic": ["cuba-libre", "pina-colada", "tequila-sunrise"],
-    "happyHourVirgin": "ipanema",
-    "cocktailOfTheEvening": "tequila-sunrise"
-  },
-  {
-    "happyHourAlcoholic": ["pina-colada", "espresso-martini", "tequila-sunrise"],
-    "happyHourVirgin": "ipanema",
-    "cocktailOfTheEvening": "bahama-mama"
-  }
+  { "happyHourAlcoholic": ["blue-lagoon", "gin-fizz", "melon-sour"], "happyHourVirgin": "ipanema", "cocktailOfTheEvening": "tequila-sunrise" },
+  { "happyHourAlcoholic": ["solero", "espresso-martini", "frozen-daiquiri"], "happyHourVirgin": "virgin-colada", "cocktailOfTheEvening": "moscow-mule" },
+  { "happyHourAlcoholic": ["cuba-libre", "pina-colada", "tequila-sunrise"], "happyHourVirgin": "ipanema", "cocktailOfTheEvening": "tequila-sunrise" },
+  { "happyHourAlcoholic": ["pina-colada", "espresso-martini", "tequila-sunrise"], "happyHourVirgin": "ipanema", "cocktailOfTheEvening": "bahama-mama" }
 ];
+*/
 
 const MANUAL_EVENT_ACTIVE = false;
 const MANUAL_EVENT_PRICE = "0,00€";
@@ -129,17 +118,6 @@ function getBerlinDateOnly(date = new Date()) {
   return new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
 }
 
-function getRotationPlanForDate(dateObj) {
-  const startDate = new Date(`${ROTATION_START}T00:00:00Z`);
-  const diffMs = dateObj - startDate;
-  const diffDays = Math.round(diffMs / 86400000); 
-  const diffWeeks = Math.floor(diffDays / 7);
-
-  if (diffWeeks < 0) return FOUR_WEEK_SPECIALS[0];
-
-  return FOUR_WEEK_SPECIALS[diffWeeks % 4];
-}
-
 function isWeekendSpecialActiveNow() {
   if (!WEEKEND_SPECIAL_ACTIVE) return false;
 
@@ -156,18 +134,6 @@ function isWeekendSpecialActiveNow() {
   return diffDays >= 0 && diffWeeks < WEEKEND_SPECIAL_WEEKS;
 }
 
-function getCurrentWeekPlan() {
-  const now = getBerlinDateParts();
-  const nowDate = getBerlinDateOnly();
-  
-  if (isWeekendSpecialActiveNow() && now.weekday === 5) {
-    const fakeSaturdayDate = new Date(nowDate.getTime() + 86400000);
-    return getRotationPlanForDate(fakeSaturdayDate);
-  }
-  
-  return getRotationPlanForDate(nowDate);
-}
-
 // --- HALLOWEEN-CHECK ---
 function isHalloweenEventActive() {
   const now = getBerlinDateParts();
@@ -176,14 +142,15 @@ function isHalloweenEventActive() {
   return false;
 }
 
+// HIER IST DIE NEUE 50% RABATT LOGIK FÜR SAMSTAG 21:00 - 22:30 UHR
 function getGlobalDiscountRate() {
   if (isHalloweenEventActive()) return 0; // HALLOWEEN: Keine Rabatte
   if (!PERCENTAGE_DISCOUNT_ACTIVE) return 0;
 
   const now = getBerlinDateParts();
   if (now.weekday === 6) { 
-    if (now.hour === 20) return 0.30; 
-    if (now.hour === 21) return 0.10; 
+    if (now.hour === 21) return 0.50; // 21:00 - 21:59 = 50%
+    if (now.hour === 22 && now.minute < 30) return 0.50; // 22:00 - 22:29 = 50%
   }
   return 0;
 }
@@ -193,23 +160,21 @@ function areSpecialsVisible() {
 
   const now = getBerlinDateParts();
   const isSpritzTime = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
-  const isHappyHourTime = now.weekday === 6 && now.hour === 21;
+  // Button einblenden, wenn die neue Happy Hour läuft
+  const isHappyHourTime = (now.weekday === 6 && (now.hour === 21 || (now.hour === 22 && now.minute < 30)));
   const isCotETime = (now.weekday === 6 && now.hour >= 23) || (now.weekday === 0 && now.hour < 10);
   
   return isSpritzTime || isHappyHourTime || isCotETime || isWeekendSpecialActiveNow();
 }
 
+// DEAKTIVIERT DIE ALTE 2 FÜR 1 LOGIK
 function isHappyHourActive() {
-  if (isHalloweenEventActive()) return false; // HALLOWEEN: Keine Happy Hour
-  if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
-  
-  const now = getBerlinDateParts();
-  return (now.weekday === 6 && now.hour === 21);
+  return false; 
 }
 
 function isCocktailOfTheEveningActive() {
   if (isHalloweenEventActive()) return false; // HALLOWEEN: Kein Cocktail des Abends
-  if (!REGULAR_HAPPY_HOUR_ACTIVE) return false;
+  if (!COCKTAIL_ABEND_ACTIVE) return false;
   
   const now = getBerlinDateParts();
   return (
@@ -308,6 +273,7 @@ function applyWeeklySpecials(cards) {
     return;
   }
 
+  // --- HIER WIRD DER NEUE 50% RABATT ANGEWENDET ---
   const globalDiscount = getGlobalDiscountRate();
 
   if (globalDiscount > 0) {
@@ -320,34 +286,25 @@ function applyWeeklySpecials(cards) {
       if (!isNaN(basePrice)) {
         const discountedPrice = basePrice * (1 - globalDiscount);
         const formattedPrice = discountedPrice.toFixed(2).replace(".", ",");
-        const discountPercent = globalDiscount === 0.30 ? "-30%" : "-10%";
-
-        priceEl.innerHTML = `${formattedPrice}€ <span class="discount-badge" style="color: #ff3333; font-weight: bold; margin-left: 5px;">(${discountPercent})</span>`;
+        
+        // Fester Badge für 50% Rabatt
+        priceEl.innerHTML = `${formattedPrice}€ <span class="discount-badge" style="color: #ff3333; font-weight: bold; margin-left: 5px;">(-50%)</span>`;
         card.classList.add("global-discount");
+        card.classList.add("happy-hour"); // Happy-Hour Leuchten/Label erhalten
       }
     });
-    return;
+    // Wir returnen hier absichtlich NICHT, damit sich zeitliche Specials theoretisch mischen könnten, falls gewünscht.
   }
 
-  const plan = getCurrentWeekPlan();
+  // --- COCKTAIL DES ABENDS LOGIK (OHNE ROTATION) ---
+  const cocktailOfEveningActive = isCocktailOfTheEveningActive();
 
-  if (plan) {
-    const happyHourActive = isHappyHourActive();
-    const cocktailOfEveningActive = isCocktailOfTheEveningActive();
-
+  if (cocktailOfEveningActive) {
     cards.forEach((card) => {
       const drinkId = card.dataset.drinkId;
       if (!drinkId) return;
 
-      const isAlcoholicHappyHour = plan.happyHourAlcoholic.includes(drinkId);
-      const isVirginHappyHour = plan.happyHourVirgin === drinkId;
-      const isCocktailOfTheEvening = plan.cocktailOfTheEvening === drinkId;
-
-      if (happyHourActive && (isAlcoholicHappyHour || isVirginHappyHour)) {
-        card.classList.add("happy-hour");
-      }
-
-      if (cocktailOfEveningActive && isCocktailOfTheEvening) {
+      if (drinkId === FIXED_COCKTAIL_OF_EVENING) {
         card.classList.add("cocktail-abend");
         const priceEl = card.querySelector(".price");
         if (priceEl) {
