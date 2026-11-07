@@ -6,7 +6,7 @@ const WEEKEND_SPECIAL_ACTIVE = false;       // Aktuell pausiert, bleibt aber im 
 const WEEKEND_SPECIAL_START = "2026-10-09"; // Startdatum 
 const WEEKEND_SPECIAL_WEEKS = 6;            // Laufzeit in Wochen
 
-const FORCE_SPECIAL_BUTTON = false; // Setze auf false, um es wieder zu deaktivieren
+const FORCE_SPECIAL_BUTTON = true; // Setze auf false, um es wieder zu deaktivieren
 
 // --- DEINE SCHALTER FÜR HEUTE ---
 
