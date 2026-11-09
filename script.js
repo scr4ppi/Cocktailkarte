@@ -19,8 +19,18 @@ const PERCENTAGE_DISCOUNT_ACTIVE = true;
 // SCHALTER 2: Cocktail des Abends (Ab 23 Uhr) - BLEIBT ERHALTEN!
 const COCKTAIL_ABEND_ACTIVE = true; 
 
-// HIER LEGT DU FEST, WELCHER COCKTAIL DES ABENDS ES SEIN SOLL (da es keine Rotation mehr gibt)
+// HIER LEGST DU FEST, WELCHER COCKTAIL DES ABENDS ES SEIN SOLL (da es keine Rotation mehr gibt)
 const FIXED_COCKTAIL_OF_EVENING = "tequila-sunrise"; 
+
+// --- KARNEVALSKARTE COCKTAILS (10.11. 00:00 Uhr bis 12.11. 06:00 Uhr) ---
+const KARNEVAL_COCKTAILS = [
+  "cuba-libre",
+  "solero",
+  "melon-sour",
+  "tequila-sunrise",
+  "touchdown",
+  "frozen-daiquiri"
+];
 
 // --------------------------------
 
@@ -54,6 +64,7 @@ const cocktailProfiles = [
   { id: "martini", name: "Martini", note: "Trocken, stark und sehr klassisch.", fruity: 0, alcohol: 5, sweet: 0, sour: 0, bitter: 2, creamy: 0 },
   { id: "espresso-martini", name: "Espresso Martini", note: "Kräftig, süßlich und koffeinhaltig.", fruity: 0, alcohol: 4, sweet: 3, sour: 0, bitter: 3, creamy: 2 },
   { id: "pina-colada", name: "Piña Colada", note: "Cremig, süß und tropisch.", fruity: 5, alcohol: 3, sweet: 5, sour: 1, bitter: 0, creamy: 5 },
+  { id: "frozen-daiquiri", name: "Frozen Daiquiri Mango/ Erdbeere", note: "Fruchtig, eiskalt und erfrischend.", fruity: 5, alcohol: 2, sweet: 4, sour: 3, bitter: 0, creamy: 0 },
   { id: "sex-on-the-beach", name: "Sex on the Beach", note: "Fruchtig, süß und leicht trinkbar.", fruity: 5, alcohol: 3, sweet: 4, sour: 2, bitter: 0, creamy: 0 },
   { id: "tequila-sunrise", name: "Tequila Sunrise", note: "Fruchtig, süß und orangebetont.", fruity: 5, alcohol: 3, sweet: 4, sour: 1, bitter: 0, creamy: 0 },
   { id: "moscow-mule", name: "Moscow Mule", note: "Frisch, würzig und leicht sauer.", fruity: 2, alcohol: 3, sweet: 2, sour: 3, bitter: 1, creamy: 0 },
@@ -142,9 +153,19 @@ function isHalloweenEventActive() {
   return false;
 }
 
+// --- KARNEVAL-CHECK (10.11. 00:00 Uhr bis 12.11. 06:00 Uhr) ---
+function isKarnevalEventActive() {
+  const now = getBerlinDateParts();
+  if (now.month === 11) {
+    if (now.day === 10 || now.day === 11) return true; // 10.11. und 11.11. ganztägig
+    if (now.day === 12 && now.hour < 6) return true;   // 12.11. bis 06:00 Uhr morgens
+  }
+  return false;
+}
+
 // HIER IST DIE NEUE 50% RABATT LOGIK FÜR SAMSTAG 21:00 - 22:30 UHR
 function getGlobalDiscountRate() {
-  if (isHalloweenEventActive()) return 0; // HALLOWEEN: Keine Rabatte
+  if (isHalloweenEventActive() || isKarnevalEventActive()) return 0; // Keine Rabatte an Halloween/Karneval
   if (!PERCENTAGE_DISCOUNT_ACTIVE) return 0;
 
   const now = getBerlinDateParts();
@@ -156,7 +177,7 @@ function getGlobalDiscountRate() {
 }
 
 function areSpecialsVisible() {
-  if (isHalloweenEventActive()) return false; // HALLOWEEN: Button ausblenden
+  if (isHalloweenEventActive() || isKarnevalEventActive()) return false; // Button ausblenden
 
   const now = getBerlinDateParts();
   const isSpritzTime = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
@@ -173,7 +194,7 @@ function isHappyHourActive() {
 }
 
 function isCocktailOfTheEveningActive() {
-  if (isHalloweenEventActive()) return false; // HALLOWEEN: Kein Cocktail des Abends
+  if (isHalloweenEventActive() || isKarnevalEventActive()) return false;
   if (!COCKTAIL_ABEND_ACTIVE) return false;
   
   const now = getBerlinDateParts();
@@ -241,14 +262,25 @@ function applyWeeklySpecials(cards) {
   restoreOriginalPrices(cards);
   clearDynamicSpecials(cards);
 
-  // --- HALLOWEEN LOGIK ---
   const kickerEl = document.querySelector(".kicker");
+
+  // --- HALLOWEEN LOGIK ---
   if (isHalloweenEventActive()) {
     document.body.classList.add("halloween-theme");
+    document.body.classList.remove("karneval-theme");
     if (kickerEl) kickerEl.textContent = "Verfluchte Drinks";
     return; // Bricht hier ab, KEINE Specials werden geladen!
   } else {
     document.body.classList.remove("halloween-theme");
+  }
+
+  // --- KARNEVAL LOGIK ---
+  if (isKarnevalEventActive()) {
+    document.body.classList.add("karneval-theme");
+    if (kickerEl) kickerEl.textContent = "Karnevalskarte";
+    return; // Bricht hier ab, nur Karnevals-Auswahl ohne Wochenend-Specials
+  } else {
+    document.body.classList.remove("karneval-theme");
     if (kickerEl) kickerEl.textContent = "Cocktails";
   }
 
@@ -293,7 +325,6 @@ function applyWeeklySpecials(cards) {
         card.classList.add("happy-hour"); // Happy-Hour Leuchten/Label erhalten
       }
     });
-    // Wir returnen hier absichtlich NICHT, damit sich zeitliche Specials theoretisch mischen könnten, falls gewünscht.
   }
 
   // --- COCKTAIL DES ABENDS LOGIK (OHNE ROTATION) ---
@@ -318,6 +349,14 @@ function applyWeeklySpecials(cards) {
 }
 
 function cardMatchesFilter(card, selectedCategory) {
+  // Wenn Karneval aktiv ist, dürfen NUR die Karnevals-Cocktails angezeigt werden
+  if (isKarnevalEventActive()) {
+    const drinkId = card.dataset.drinkId;
+    if (!KARNEVAL_COCKTAILS.includes(drinkId)) {
+      return false;
+    }
+  }
+
   const baseCategory = card.dataset.category;
   if (selectedCategory === "all") return true;
 
@@ -337,7 +376,38 @@ function cardMatchesFilter(card, selectedCategory) {
   return baseCategory === selectedCategory;
 }
 
+function updateCategoryButtonsForKarneval(cards) {
+  const categoryBtns = document.querySelectorAll(".category-btn");
+  const isKarneval = isKarnevalEventActive();
+
+  categoryBtns.forEach((btn) => {
+    const cat = btn.dataset.category;
+    if (cat === "specials") return; // Wird bereits über updateSpecialButtonVisibility gesteuert
+
+    if (!isKarneval || cat === "all") {
+      btn.style.display = "";
+      return;
+    }
+
+    // Prüfen, ob in dieser Kategorie mindestens ein Karnevals-Cocktail existiert
+    const hasAvailableCard = Array.from(cards).some(
+      (card) => cardMatchesFilter(card, cat)
+    );
+    btn.style.display = hasAvailableCard ? "" : "none";
+  });
+
+  // Falls die aktuell ausgewählte Kategorie ausgeblendet wurde, zurück auf "Alle" setzen
+  const activeBtn = document.querySelector(".category-btn.active");
+  if (activeBtn && activeBtn.style.display === "none") {
+    categoryBtns.forEach((b) => b.classList.remove("active"));
+    const allBtn = document.querySelector('.category-btn[data-category="all"]');
+    if (allBtn) allBtn.classList.add("active");
+  }
+}
+
 function applyCurrentFilter(cards) {
+  updateCategoryButtonsForKarneval(cards);
+
   const activeBtn = document.querySelector(".category-btn.active");
   const selectedCategory = activeBtn ? activeBtn.dataset.category : "all";
 
@@ -372,7 +442,11 @@ function calculateMatch(wanted, cocktail) {
 
 function getSortedMatches(tasteInputs) {
   const wanted = getWantedProfile(tasteInputs);
-  return cocktailProfiles
+  const availableProfiles = isKarnevalEventActive()
+    ? cocktailProfiles.filter((c) => KARNEVAL_COCKTAILS.includes(c.id))
+    : cocktailProfiles;
+
+  return availableProfiles
     .map((cocktail) => ({
       ...cocktail,
       match: calculateMatch(wanted, cocktail)
@@ -608,5 +682,6 @@ document.addEventListener("DOMContentLoaded", () => {
     applyWeeklySpecials(cards);
     updateSpecialButtonVisibility();
     applyCurrentFilter(cards);
+    updateDrinkFinder();
   }, 60000);
 });
