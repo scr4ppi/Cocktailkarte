@@ -22,7 +22,8 @@ const COCKTAIL_ABEND_ACTIVE = true;
 // HIER LEGST DU FEST, WELCHER COCKTAIL DES ABENDS ES SEIN SOLL (da es keine Rotation mehr gibt)
 const FIXED_COCKTAIL_OF_EVENING = "tequila-sunrise"; 
 
-// --- KARNEVALSKARTE COCKTAILS (10.11. 00:00 Uhr bis 12.11. 06:00 Uhr) ---
+// --- KARNEVALSKARTE (10.11. 00:00 Uhr bis 12.11. 06:00 Uhr) ---
+const KARNEVAL_PRICE = "9,50€";
 const KARNEVAL_COCKTAILS = [
   "cuba-libre",
   "solero",
@@ -89,6 +90,67 @@ const tasteLabels = [
   { key: "bitter", label: "Bitter" },
   { key: "creamy", label: "Cremig" }
 ];
+
+// Speist das minimale Karnevals-CSS automatisch in die Seite ein
+function injectKarnevalStyles() {
+  if (document.getElementById("karneval-minimal-styles")) return;
+
+  const style = document.createElement("style");
+  style.id = "karneval-minimal-styles";
+  style.textContent = `
+    /* Dezenter warmer Karnevals-Schimmer im Hintergrund */
+    body.karneval-theme::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(228, 3, 3, 0.16), transparent 32%),
+        radial-gradient(circle at 85% 12%, rgba(255, 209, 102, 0.14), transparent 30%),
+        radial-gradient(circle at 50% 90%, rgba(0, 128, 38, 0.10), transparent 35%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    /* Kicker in festlichem Goldgelb */
+    body.karneval-theme .kicker {
+      color: #ffd166;
+      text-shadow: 0 0 16px rgba(255, 209, 102, 0.35);
+      letter-spacing: 0.22em;
+    }
+
+    /* Dezenter Karnevals-Akzent für die Cocktail-Karten */
+    body.karneval-theme .card {
+      position: relative;
+      border-color: rgba(255, 209, 102, 0.22);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35), 0 0 18px rgba(255, 209, 102, 0.06);
+    }
+
+    /* 4-farbige Karnevals-Linie (Rot, Gelb, Grün, Blau) am linken Kartenrand */
+    body.karneval-theme .card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 5px;
+      background: linear-gradient(180deg, #E40303 0%, #FFD166 33%, #008026 66%, #004DFF 100%);
+      z-index: 2;
+    }
+
+    /* Aktiver Kategorie-Button und Preise im Karnevals-Look */
+    body.karneval-theme .category-btn.active {
+      background: linear-gradient(135deg, #E40303, #ff7b00);
+      border-color: #ffd166;
+      color: #ffffff;
+      box-shadow: 0 0 14px rgba(228, 3, 3, 0.45);
+    }
+
+    body.karneval-theme .price {
+      color: #ffd166;
+    }
+  `;
+  document.head.appendChild(style);
+}
 
 function getBerlinDateParts(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("de-DE", {
@@ -181,7 +243,6 @@ function areSpecialsVisible() {
 
   const now = getBerlinDateParts();
   const isSpritzTime = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
-  // Button einblenden, wenn die neue Happy Hour läuft
   const isHappyHourTime = (now.weekday === 6 && (now.hour === 21 || (now.hour === 22 && now.minute < 30)));
   const isCotETime = (now.weekday === 6 && now.hour >= 23) || (now.weekday === 0 && now.hour < 10);
   
@@ -269,16 +330,23 @@ function applyWeeklySpecials(cards) {
     document.body.classList.add("halloween-theme");
     document.body.classList.remove("karneval-theme");
     if (kickerEl) kickerEl.textContent = "Verfluchte Drinks";
-    return; // Bricht hier ab, KEINE Specials werden geladen!
+    return;
   } else {
     document.body.classList.remove("halloween-theme");
   }
 
-  // --- KARNEVAL LOGIK ---
+  // --- KARNEVAL LOGIK (Pauschal 9,50€ & Karneval-Design) ---
   if (isKarnevalEventActive()) {
     document.body.classList.add("karneval-theme");
-    if (kickerEl) kickerEl.textContent = "Karnevalskarte";
-    return; // Bricht hier ab, nur Karnevals-Auswahl ohne Wochenend-Specials
+    if (kickerEl) kickerEl.textContent = "🎉 Kölle Alaaf 🎉";
+
+    cards.forEach((card) => {
+      const priceEl = card.querySelector(".price");
+      if (priceEl) {
+        priceEl.textContent = KARNEVAL_PRICE;
+      }
+    });
+    return; // Bricht hier ab, keine regulären Specials an Karneval
   } else {
     document.body.classList.remove("karneval-theme");
     if (kickerEl) kickerEl.textContent = "Cocktails";
@@ -319,10 +387,9 @@ function applyWeeklySpecials(cards) {
         const discountedPrice = basePrice * (1 - globalDiscount);
         const formattedPrice = discountedPrice.toFixed(2).replace(".", ",");
         
-        // Fester Badge für 50% Rabatt
         priceEl.innerHTML = `${formattedPrice}€ <span class="discount-badge" style="color: #ff3333; font-weight: bold; margin-left: 5px;">(-50%)</span>`;
         card.classList.add("global-discount");
-        card.classList.add("happy-hour"); // Happy-Hour Leuchten/Label erhalten
+        card.classList.add("happy-hour");
       }
     });
   }
@@ -349,7 +416,7 @@ function applyWeeklySpecials(cards) {
 }
 
 function cardMatchesFilter(card, selectedCategory) {
-  // Wenn Karneval aktiv ist, dürfen NUR die Karnevals-Cocktails angezeigt werden
+  // Wenn Karneval aktiv ist, dürfen NUR die 6 Karnevals-Cocktails angezeigt werden
   if (isKarnevalEventActive()) {
     const drinkId = card.dataset.drinkId;
     if (!KARNEVAL_COCKTAILS.includes(drinkId)) {
@@ -382,21 +449,19 @@ function updateCategoryButtonsForKarneval(cards) {
 
   categoryBtns.forEach((btn) => {
     const cat = btn.dataset.category;
-    if (cat === "specials") return; // Wird bereits über updateSpecialButtonVisibility gesteuert
+    if (cat === "specials") return;
 
     if (!isKarneval || cat === "all") {
       btn.style.display = "";
       return;
     }
 
-    // Prüfen, ob in dieser Kategorie mindestens ein Karnevals-Cocktail existiert
     const hasAvailableCard = Array.from(cards).some(
       (card) => cardMatchesFilter(card, cat)
     );
     btn.style.display = hasAvailableCard ? "" : "none";
   });
 
-  // Falls die aktuell ausgewählte Kategorie ausgeblendet wurde, zurück auf "Alle" setzen
   const activeBtn = document.querySelector(".category-btn.active");
   if (activeBtn && activeBtn.style.display === "none") {
     categoryBtns.forEach((b) => b.classList.remove("active"));
@@ -544,6 +609,8 @@ function drawRadar(radarCanvas, tasteInputs) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  injectKarnevalStyles();
+
   const cards = document.querySelectorAll(".card");
   const categoryBtns = document.querySelectorAll(".category-btn");
 
