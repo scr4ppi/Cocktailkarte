@@ -78,7 +78,6 @@ const cocktailProfiles = [
   { id: "solero", name: "Solero", note: "Vanillig, fruchtig und cremig-süß.", fruity: 5, alcohol: 3, sweet: 5, sour: 2, bitter: 0, creamy: 3 },
   { id: "cuba-libre", name: "Cuba Libre", note: "Rum, Cola und Limette. Süß, frisch und unkompliziert.", fruity: 2, alcohol: 3, sweet: 3, sour: 2, bitter: 1, creamy: 0 },
   { id: "bahama-mama", name: "Bahama Mama", note: "Tropisch, fruchtig und rumlastig.", fruity: 5, alcohol: 4, sweet: 4, sour: 2, bitter: 0, creamy: 1 },
-  { id: "frozen-aperol", name: "Frozen Aperol", note: "Erfrischend, fruchtig und leicht bitter – perfekt als Slush.", fruity: 4, alcohol: 3, sweet: 4, sour: 2, bitter: 2, creamy: 0 },
   { id: "touchdown", name: "Touchdown", note: "Fruchtig, süß-sauer und partygeeignet.", fruity: 5, alcohol: 3, sweet: 4, sour: 3, bitter: 0, creamy: 0 }
 ];
 
@@ -242,11 +241,11 @@ function areSpecialsVisible() {
   if (isHalloweenEventActive() || isKarnevalEventActive()) return false; // Button ausblenden
 
   const now = getBerlinDateParts();
-  const isSpritzTime = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
+  const isFridaySpecialTime = (now.weekday === 5) || (now.weekday === 6 && now.hour < 6);
   const isHappyHourTime = (now.weekday === 6 && (now.hour === 21 || (now.hour === 22 && now.minute < 30)));
   const isCotETime = (now.weekday === 6 && now.hour >= 23) || (now.weekday === 0 && now.hour < 10);
   
-  return isSpritzTime || isHappyHourTime || isCotETime || isWeekendSpecialActiveNow();
+  return isFridaySpecialTime || isHappyHourTime || isCotETime || isWeekendSpecialActiveNow();
 }
 
 // DEAKTIVIERT DIE ALTE 2 FÜR 1 LOGIK
@@ -354,20 +353,28 @@ function applyWeeklySpecials(cards) {
 
   const now = getBerlinDateParts();
   
-  // Freitag Spritz-Special: 22:00 bis 06:00 Uhr
-  const isSpritzHour = (now.weekday === 5 && now.hour >= 22) || (now.weekday === 6 && now.hour < 6);
+  // Freitag Specials: Spritz den ganzen Abend 5€, Vodka Red Bull 22-23 Uhr 5€
+  const isFridaySpecialTime = (now.weekday === 5) || (now.weekday === 6 && now.hour < 6);
+  const isVodkaRedbullHour = (now.weekday === 5 && now.hour === 22);
   
-  if (isSpritzHour) {
+  if (isFridaySpecialTime) {
     cards.forEach((card) => {
       const drinkId = card.dataset.drinkId;
       const priceEl = card.querySelector(".price");
       if (!drinkId || !priceEl) return;
 
-      const isSpritzSpecial = ["aperol-spritz", "Lillet", "sarti-lemon", "frozen-aperol"].includes(drinkId);
+      const isSpritzSpecial = ["aperol-spritz", "Lillet", "sarti-lemon"].includes(drinkId);
+      // Fängt beliebige Red Bull Kombinationen im HTML der Getränkekarte ab
+      const isVodkaRedbull = ["vodka-redbull", "redbull-vodka", "vodka-red-bull", "redbull"].includes(drinkId.toLowerCase());
 
       if (isSpritzSpecial) {
         card.classList.add("manual-event");
-        priceEl.textContent = "6,00€";
+        priceEl.textContent = "5,00€";
+      }
+
+      if (isVodkaRedbullHour && isVodkaRedbull) {
+        card.classList.add("manual-event");
+        priceEl.textContent = "5,00€";
       }
     });
     return;
